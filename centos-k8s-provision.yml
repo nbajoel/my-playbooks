@@ -1,0 +1,64 @@
+# This playbook provisions a centos box with the proper tools and config to run k8s with kubeadm with docker as the runtime
+
+- name: run tasks on all hosts
+  hosts: centos
+  tasks:
+    - name: turn off firewalld #TODO: setup proper firewall rules instead of disabling
+      service:
+        name: firewalld
+        state: stopped
+        enabled: False
+      become: true
+      #---Provision the container runtime---
+    - name: install the required tools to install the container runtime (docker) #TODO: add support for multiple runtimes?
+      yum:
+        name: 
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+        update_cache: true
+      become: true
+    - name: add the docker repository #TODO: add GPG key check
+      yum_repository:
+        name: docker-ce
+        description: Docker-ce repository
+        baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
+        gpgcheck: no
+      become: true
+    - name: install docker
+      package:
+        name: docker-ce
+        state: present
+      become: true
+    - name: start docker service
+      service:
+        name: docker
+        state: started
+        enabled: True
+      become: true
+
+      #---Provision k8s tools---
+    - name: add the k8s yum repository
+      yum_repository:
+        name: Kubernetes
+        description: K8s repo
+        baseurl:  https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+        gpgcheck: true
+        gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      become: true
+    - name: install kubelet kubeadm kubectl (set to v 1.19.6) 
+      yum:
+        name: 
+          - kubeadm-1.19.6
+          - kubectl-1.19.6
+          - kubelet-1.19.6
+        state: present
+        update_cache: true
+      become: true
+    - name: start kubelet service
+      service:
+        name: kubelet
+        state: started
+        enabled: True
+      become: true
