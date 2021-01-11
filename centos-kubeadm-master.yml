@@ -1,0 +1,40 @@
+ # This playbook provisions a centos7 box as the master node with k8s using kubeadm 
+
+- hosts: master
+  become: yes
+  tasks:
+    - name: initalize the cluster
+      shell: kubeadm init --pod-network-cidr=10.244.0.0/16 >> cluster_init.txt
+      args:
+        chdir: $HOME
+        creates: cluster_init.txt
+
+    - name: create .kube directory
+      become: yes
+      become_user: joelmc14 #TODO: set this to a variable user
+      file:
+        path: $HOME/.kube
+        state: directory
+        mode: 0755
+
+    - name: copy admin.conf to user's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/joelmc14/.kube/config #TODO: set this to a variable user
+        remote_src: yes
+
+    - name: set the owner of the file to the current user
+      become: yes
+      become_user: joelmc14 #TODO: set this to a variable user
+      shell: sudo chown $(id -u):$(id -g) $HOME/.kube/config >> kube-config.txt
+      args:
+        chdir: $HOME
+        creates: kube-config.txt
+
+    - name: install the pod network (calico)
+      become: yes
+      become_user: joelmc14 #TODO: set this to a variable user
+      shell: kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml >> network-plugin.txt
+      args:
+        chdir: $HOME
+        creates: network-plugin.txt
