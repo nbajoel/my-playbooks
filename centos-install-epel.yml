@@ -1,4 +1,4 @@
-# This playbook provisions a centos7 vm with the tools necessary to run k8s via kubeadm setup
+# This playbook installs the epel tools onto the the specified centos boxes
 
 - name: run tasks on all hosts
   hosts: centos
