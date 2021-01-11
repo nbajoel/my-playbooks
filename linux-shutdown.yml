@@ -1,0 +1,8 @@
+# This playbook shutsdown all linux hosts as specified in host file
+
+- hosts: linux
+  become: yes
+  tasks:
+  - name: shutdown hosts
+    command: /sbin/shutdown -h now
+    ignore_errors: 'yes'
