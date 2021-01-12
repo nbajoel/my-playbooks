@@ -1,0 +1,9 @@
+# Runs a series of playbooks to setup a k8s cluster
+- name: provisions any centos7 boxes with proper k8s tools
+  import_playbook: k8s-provision-centos.yml
+
+- name: sets up the k8s master node via kubeadm
+  import_playbook: kubeadm-master-centos.yml
+
+- name: sets up the k8s worker nodes via kubeadm
+  import_playbook: kubeadm-workers-centos.yml

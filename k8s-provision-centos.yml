@@ -3,13 +3,51 @@
 - name: run tasks on all hosts
   hosts: centos
   tasks:
+
+      #---Disable features to enable k8s functionality---#
+
     - name: turn off firewalld #TODO: setup proper firewall rules instead of disabling
       service:
         name: firewalld
         state: stopped
         enabled: False
       become: true
+
+    - name: disable swap
+      shell: swapoff -a
+      become: true
+
+    - name: disable swap in fstab
+      lineinfile:
+        path: /etc/fstab
+        regexp: 'swap'
+        state: absent
+
+    - name: disable SELinux
+      shell: setenforce 0
+      become: true
+
+    - name: disable SELinux so that is persists reboot
+      become: true
+      selinux:
+        state: disabled
+    
+    - name: ensure net.bridge.bridge-nf-call-iptables is set to 1
+      become: true
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: 1
+        state: present
+
+    - name: ensure net.bridge.bridge-nf-call-ip6tables is set to 1
+      become: true
+      sysctl:
+        name: net.bridge.bridge-nf-call-ip6tables
+        value: 1
+        state: present
+
       #---Provision the container runtime---
+
     - name: install the required tools to install the container runtime (docker) #TODO: add support for multiple runtimes?
       yum:
         name: 
@@ -19,6 +57,7 @@
         state: present
         update_cache: true
       become: true
+
     - name: add the docker repository #TODO: add GPG key check
       yum_repository:
         name: docker-ce
@@ -26,11 +65,13 @@
         baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
         gpgcheck: no
       become: true
+
     - name: install docker
       package:
         name: docker-ce
         state: present
       become: true
+
     - name: start docker service
       service:
         name: docker
@@ -39,6 +80,7 @@
       become: true
 
       #---Provision k8s tools---
+
     - name: add the k8s yum repository
       yum_repository:
         name: Kubernetes
@@ -47,6 +89,7 @@
         gpgcheck: true
         gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
       become: true
+
     - name: install kubelet kubeadm kubectl (set to v 1.19.6) 
       yum:
         name: 
@@ -56,9 +99,11 @@
         state: present
         update_cache: true
       become: true
+
     - name: start kubelet service
       service:
         name: kubelet
-        state: started
+        state: restarted
         enabled: True
+        daemon-reload: True
       become: true

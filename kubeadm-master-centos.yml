@@ -38,3 +38,9 @@
       args:
         chdir: $HOME
         creates: network-plugin.txt
+
+    - name: taint the master node so no pods are scheduled
+      shell: kubectl taint node $hostname node-role.kubernetes.io/master- >> taint_node.txt 
+      args:
+        chdir: $HOME
+        creates: taint_node.txt

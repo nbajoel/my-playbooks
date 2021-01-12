@@ -1,11 +1,13 @@
-# This playbook installs the epel tools onto the the specified centos boxes
+# This playbook installs the epel tools & other useful packages onto the the specified centos boxes
 
 - name: run tasks on all hosts
   hosts: centos
   tasks:
     - name: install epel repo
       yum:
-        name: epel-release
+        name: 
+        - epel-release
+        - bash-completion
         state: present
         update_cache: true
       become: true
