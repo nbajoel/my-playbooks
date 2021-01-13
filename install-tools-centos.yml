@@ -9,6 +9,7 @@
         - epel-release
         - bash-completion
         - tmux
+        - vim
         state: present
         update_cache: true
       become: true
