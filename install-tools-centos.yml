@@ -3,11 +3,12 @@
 - name: run tasks on all hosts
   hosts: centos
   tasks:
-    - name: install epel repo
+    - name: install all useful tools
       yum:
         name: 
         - epel-release
         - bash-completion
+        - tmux
         state: present
         update_cache: true
       become: true
